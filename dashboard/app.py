@@ -1,15 +1,15 @@
 import streamlit as st
+from streamlit_option_menu import option_menu
 import pandas as pd
 import plotly.express as px
 import sys
 import os
 from dotenv import load_dotenv
-from streamlit_option_menu import option_menu # Import modul baru
 
 # --- KONFIGURASI HALAMAN ---
-# initial_sidebar_state="collapsed" akan menyembunyikan sidebar bawaan
+# Konfigurasi halaman WAJIB berada di paling atas sebelum logika layout lainnya
 st.set_page_config(
-    page_title="Rachman Hady-Halaman", 
+    page_title="Rachman Hady - Portofolio", 
     page_icon="🔴", 
     layout="wide",
     initial_sidebar_state="collapsed" 
@@ -66,217 +66,249 @@ def load_hero_data():
 
 df_hero = load_hero_data()
 
-# --- HEADER ALA MPL ID (NAVIGASI ATAS) ---
-# Menggunakan CSS untuk menyembunyikan header bawaan Streamlit agar lebih bersih
-st.markdown("""
+# ==========================================
+# 1. INISIALISASI MEMORI (SESSION STATE)
+# ==========================================
+# Cek apakah pengguna sudah menekan tombol masuk
+if 'sudah_masuk' not in st.session_state:
+    st.session_state['sudah_masuk'] = False
+
+# Fungsi untuk mengubah status saat tombol diklik
+def masuk_portofolio():
+    st.session_state['sudah_masuk'] = True
+
+# ==========================================
+# 2. HALAMAN COVER (LANDING PAGE)
+# ==========================================
+if not st.session_state['sudah_masuk']:
+    
+    # CSS Khusus untuk Cover
+    st.markdown("""
     <style>
-        header {visibility: hidden;}
-        .block-container {padding-top: 1rem; padding-bottom: 0rem;}
+    header {visibility: hidden;}
+    .block-container {padding-top: 2rem;}
+    .cover-subtitle { font-size: 22px; letter-spacing: 3px; color: #888; margin-bottom: -15px; }
+    .cover-title { font-size: 65px; font-weight: 900; margin-bottom: -15px; line-height: 1.1; }
+    .cover-role { font-size: 22px; font-weight: 300; color: #555; margin-bottom: 20px; }
+    /* Desain Tombol Ala MPL */
+    .stButton>button { border-radius: 5px; border: 2px solid #e50000; color: white; background-color: transparent; height: 50px; font-weight: bold; letter-spacing: 1px;}
+    .stButton>button:hover { background-color: #e50000; color: white; border-color: #e50000;}
     </style>
-""", unsafe_allow_html=True)
+    """, unsafe_allow_html=True)
 
-# Membuat baris untuk Logo dan Menu
-col_logo, col_menu = st.columns([1.5, 4.5])
+    col_cover_text, col_cover_img = st.columns([1.5, 1], gap="large")
+    
+    with col_cover_text:
+        st.markdown('<p class="cover-subtitle">HAY! THERE</p>', unsafe_allow_html=True)
+        st.markdown('<p class="cover-title">I AM RACHMAN</p>', unsafe_allow_html=True)
+        st.markdown('<p class="cover-role">A STUDENT FROM ITERA |</p>', unsafe_allow_html=True)
+        
+        st.markdown("<br><br>", unsafe_allow_html=True)
+        
+        # Tombol Sakti untuk Melanjutkan
+        st.button("🚀 JELAJAHI PORTOFOLIO", on_click=masuk_portofolio, use_container_width=True)
+        
+    with col_cover_img:
+        # Menggunakan logo esports untuk cover
+        st.image("dashboard/lalala.jpg", use_container_width=True)
 
-with col_logo:
-    # Menggunakan teks bergaya sebagai pengganti logo, kamu bisa ganti dengan st.image() jika ada file logo
-    st.markdown("<h2 style='color: white; margin-top: 5px; font-style: italic;'>RH.<br><span style='color: #e50000;'>The Intruder</span></h2>", unsafe_allow_html=True)
-
-with col_menu:
-    menu_selection = option_menu(
-        menu_title=None,  # Sembunyikan judul menu
-        options=["HOME (PROFIL)", "STATISTIK", "ANALISIS HERO", "BERITA (ABOUT)"],
-        icons=["house", "bar-chart-fill", "controller", "info-circle"], # Ikon Bootstrap
-        default_index=0,
-        orientation="horizontal",
-        styles={
-            "container": {"padding": "0!important", "background-color": "#4a0000", "border-radius": "0px"},
-            "icon": {"color": "white", "font-size": "14px"}, 
-            "nav-link": {"font-size": "13px", "text-align": "center", "margin":"0px", "--hover-color": "#800000"},
-            "nav-link-selected": {"background-color": "#e50000"},
-        }
-    )
-
-# --- HEADER ALA MPL ID (NAVIGASI ATAS) ---
-st.markdown("""
-    <style>
-        header {visibility: hidden;}
-        .block-container {padding-top: 1rem; padding-bottom: 0rem;}
-        /* Mencegah layar bergetar dengan mengunci scrollbar vertikal */
-        html, body {overflow-y: scroll !important;}
-    </style>
-""", unsafe_allow_html=True)
-
-if df_leaderboard.empty:
-    st.error("Data gagal dimuat. Periksa koneksi database.")
+# ==========================================
+# 3. HALAMAN UTAMA (SETELAH TOMBOL DIKLIK)
+# ==========================================
 else:
-    # --- HALAMAN 1: PROFIL (HOME) ---
-    if menu_selection == "HOME (PROFIL)":
-        col_foto, col_teks = st.columns([1, 2.5], gap="large")
-        with col_foto:
-            st.image("dashboard/jajaja.jpeg", use_container_width=True)
-            
-        with col_teks:
-            st.subheader("Rachman Hady | Teknik Informatika ITERA 2024")
-            
-            st.markdown(
-                "Mahasiswa Teknik Informatika Institut Teknologi Sumatera (ITERA) semester 4.<br>"
-                "Memiliki minat pada AI Engineering dan Machine Learning, saya juga menyukai scene kompetitif dari game yang saya mainkan. "
-                "Hal inilah yang menginspirasi saya membuat analisis e-sports ini.", 
-                unsafe_allow_html=True
-            )
-            
-            st.write(
-                "Platform ini mensimulasikan *pipeline* data setingkat industri e-sports "
-                "dengan tumpukan teknologi: Python, PostgreSQL, dan Streamlit."
-            )
-    # --- HALAMAN 2: STATISTIK ---
-    elif menu_selection == "STATISTIK":
-        st.markdown("### 🏆 Papan Peringkat KDA: Team Liquid PH")
-        col_kpi1, col_kpi2, col_kpi3 = st.columns(3)
-        with col_kpi1:
-            st.metric(label="Total Partisipan", value=f"{df_leaderboard['Player'].nunique()} Player")
-        with col_kpi2:
-            st.metric(label="KDA Tertinggi", value=f"{df_leaderboard['KDA Ratio'].max()} (MVP)")
-        with col_kpi3:
-            st.metric(label="Rata-rata Kills", value=f"{round(df_leaderboard['Kills'].mean(), 1)} / Match")
-        
-        st.markdown("<br>", unsafe_allow_html=True)
+    # --- CSS HEADER ALA MPL ID ---
+    st.markdown("""
+        <style>
+            header {visibility: hidden;}
+            .block-container {padding-top: 1rem; padding-bottom: 0rem;}
+            /* Mencegah layar bergetar dengan mengunci scrollbar vertikal */
+            html, body {overflow-y: scroll !important;}
+        </style>
+    """, unsafe_allow_html=True)
 
-        col_tabel, col_grafik = st.columns([1, 1.5])
-        with col_tabel:
-            st.dataframe(df_leaderboard, use_container_width=True, hide_index=True)
-            
-        with col_grafik:
-            fig = px.bar(
-                df_leaderboard, x="Player", y="KDA Ratio", color="KDA Ratio", text="KDA Ratio",
-                color_continuous_scale=px.colors.sequential.Reds # Warna grafik menjadi merah
-            )
-            fig.update_layout(
-                plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)",
-                margin=dict(l=0, r=0, t=10, b=0), font=dict(color="#ffffff")
-            )
-            fig.update_traces(textposition='outside')
-            st.plotly_chart(fig, use_container_width=True)
+    # Membuat baris untuk Logo dan Menu
+    col_logo, col_menu = st.columns([1.5, 4.5])
 
-    # --- HALAMAN 3: ANALISIS HERO ---
-    elif menu_selection == "ANALISIS HERO":
-        st.markdown("### ⚔️ Statistik Performa Hero (Champion)")
-        
-        if df_hero.empty:
-            st.warning("Data hero belum tersedia di database.")
-        else:
-            # 1. Baris Atas: KPI Hero
+    with col_logo:
+        st.markdown("<h2 style='color: white; margin-top: 5px; font-style: italic;'>RH.<br><span style='color: #e50000;'>The Intruder</span></h2>", unsafe_allow_html=True)
+
+    with col_menu:
+        menu_selection = option_menu(
+            menu_title=None,  
+            options=["HOME (PROFIL)", "STATISTIK", "ANALISIS HERO", "BERITA (ABOUT)"],
+            icons=["house", "bar-chart-fill", "controller", "info-circle"], 
+            default_index=0,
+            orientation="horizontal",
+            styles={
+                "container": {"padding": "0!important", "background-color": "#4a0000", "border-radius": "0px"},
+                "icon": {"color": "white", "font-size": "14px"}, 
+                "nav-link": {"font-size": "13px", "text-align": "center", "margin":"0px", "--hover-color": "#800000"},
+                "nav-link-selected": {"background-color": "#e50000"},
+            }
+        )
+
+    if df_leaderboard.empty:
+        st.error("Data gagal dimuat. Periksa koneksi database.")
+    else:
+        # --- HALAMAN 1: PROFIL (HOME) ---
+        if menu_selection == "HOME (PROFIL)":
+            col_foto, col_teks = st.columns([1, 2.5], gap="large")
+            with col_foto:
+                # Menggunakan foto dirimu untuk di dalam profil
+                st.image("dashboard/jajaja.jpeg", use_container_width=True)
+                
+            with col_teks:
+                st.subheader("Rachman Hady | Teknik Informatika ITERA 2024")
+                
+                st.markdown(
+                    "Mahasiswa Teknik Informatika Institut Teknologi Sumatera (ITERA) semester 4.<br>"
+                    "Memiliki minat pada AI Engineering dan Machine Learning, saya juga menyukai scene kompetitif dari game yang saya mainkan. "
+                    "Hal inilah yang menginspirasi saya membuat analisis e-sports ini.", 
+                    unsafe_allow_html=True
+                )
+                
+                st.write(
+                    "Platform ini mensimulasikan *pipeline* data setingkat industri e-sports "
+                    "dengan tumpukan teknologi: Python, PostgreSQL, dan Streamlit."
+                )
+                
+        # --- HALAMAN 2: STATISTIK ---
+        elif menu_selection == "STATISTIK":
+            st.markdown("### 🏆 Papan Peringkat KDA: Team Liquid PH & ONIC")
             col_kpi1, col_kpi2, col_kpi3 = st.columns(3)
             with col_kpi1:
-                st.metric(label="Total Hero Dimainkan", value=f"{df_hero['Hero'].nunique()} Hero")
+                st.metric(label="Total Partisipan", value=f"{df_leaderboard['Player'].nunique()} Player")
             with col_kpi2:
-                # Mengambil nama hero dengan KDA rata-rata tertinggi (baris pertama)
-                hero_mvp = df_hero.iloc[0]['Hero']
-                st.metric(label="Hero dengan KDA Tertinggi", value=f"{hero_mvp}")
+                st.metric(label="KDA Tertinggi", value=f"{df_leaderboard['KDA Ratio'].max()} (MVP)")
             with col_kpi3:
-                total_kills = df_hero['Total Kills'].sum()
-                st.metric(label="Total Kills Keseluruhan", value=f"{total_kills} Kills")
+                st.metric(label="Rata-rata Kills", value=f"{round(df_leaderboard['Kills'].mean(), 1)} / Match")
             
             st.markdown("<br>", unsafe_allow_html=True)
-            
-            # 2. Baris Bawah: Tabel dan Grafik
-            col_tabel, col_grafik = st.columns([1, 1.5], gap="large")
-            
+
+            col_tabel, col_grafik = st.columns([1, 1.5])
             with col_tabel:
-                st.markdown("**Detail Rekapitulasi Hero**")
-                st.dataframe(df_hero, use_container_width=True, hide_index=True)
+                st.dataframe(df_leaderboard, use_container_width=True, hide_index=True)
                 
             with col_grafik:
-                st.markdown("**Grafik Rata-rata KDA per Hero**")
                 fig = px.bar(
-                    df_hero, 
-                    x="Hero", 
-                    y="Avg KDA Ratio", 
-                    color="Avg KDA Ratio", 
-                    text="Avg KDA Ratio",
-                    color_continuous_scale=px.colors.sequential.Reds # Tema merah MPL
+                    df_leaderboard, x="Player", y="KDA Ratio", color="KDA Ratio", text="KDA Ratio",
+                    color_continuous_scale=px.colors.sequential.Reds 
                 )
                 fig.update_layout(
-                    plot_bgcolor="rgba(0,0,0,0)", 
-                    paper_bgcolor="rgba(0,0,0,0)",
-                    margin=dict(l=0, r=0, t=10, b=0), 
-                    font=dict(color="#ffffff")
+                    plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)",
+                    margin=dict(l=0, r=0, t=10, b=0), font=dict(color="#ffffff")
                 )
                 fig.update_traces(textposition='outside')
                 st.plotly_chart(fig, use_container_width=True)
-        
-# --- HALAMAN 4: BERITA (ABOUT) ---
-    elif menu_selection == "BERITA (ABOUT)":
-        st.markdown("### 🌐 System Architecture & Patch Notes")
-        st.markdown(
-            "Selamat datang di pusat komando **Esports Analytics Pipeline**. Platform ini dibangun di atas "
-            "arsitektur data modern untuk menyimulasikan pemrosesan metrik e-sports secara terintegrasi."
-        )
-        
-        st.markdown("<br>", unsafe_allow_html=True)
-        
-        # Membuat Tabs untuk struktur antarmuka yang futuristik dan rapi
-        tab_arsitektur, tab_tech, tab_patch = st.tabs(["🏗️ Arsitektur Data", "🛠️ Tech Stack", "📜 Patch Notes"])
-        
-        # --- TAB 1: ARSITEKTUR PIPELINE ---
-        with tab_arsitektur:
-            st.markdown("**Alur Pemrosesan Data (End-to-End Pipeline)**")
-            # Membagi layar menjadi 3 kartu informasi menggunakan kolom
-            col_etl, col_dw, col_viz = st.columns(3)
-            
-            with col_etl:
-                # Menggunakan st.info, warning, dan error untuk memberikan aksen warna kotak
-                st.info("**1. Data Ingestion (ETL)**")
-                st.write(
-                    "Skrip Python (`extract.py` & `transform.py`) otomatis mengekstrak data mentah, "
-                    "membersihkannya dengan **Pandas**, dan mengkalkulasi metrik turunan (seperti KDA) "
-                    "sebelum masuk ke database."
-                )
-                
-            with col_dw:
-                st.warning("**2. Data Warehouse**")
-                st.write(
-                    "Data bersih dimuat ke dalam **PostgreSQL** (`load.py`) mematuhi skema relasional 3NF. "
-                    "Memastikan integritas entitas menggunakan sistem Foreign Key dan UUID."
-                )
-                
-            with col_viz:
-                st.error("**3. Visualization**")
-                st.write(
-                    "Data di-query langsung dari database dan disajikan menjadi dasbor interaktif "
-                    "menggunakan **Streamlit** dan **Plotly**, memberikan insight performa secara langsung."
-                )
 
-        # --- TAB 2: TECH STACK ---
-        with tab_tech:
-            st.markdown("**Infrastruktur Teknologi Terkini**")
-            # Menggunakan kutipan blockquote untuk daftar teknologi
-            st.markdown("""
-            > **Bahasa Pemrograman:** Python 3.12+  
-            > **Pemrosesan Data & Analitik:** Pandas, NumPy  
-            > **Database & Konektor:** PostgreSQL, pgAdmin 4, SQLAlchemy, Psycopg2  
-            > **Pengembangan Antarmuka Web:** Streamlit, Streamlit-Option-Menu  
-            > **Visualisasi Grafis:** Plotly Express  
-            > **Version Control & Repository:** Git, GitHub  
-            """)
+        # --- HALAMAN 3: ANALISIS HERO ---
+        elif menu_selection == "ANALISIS HERO":
+            st.markdown("### ⚔️ Statistik Performa Hero (Champion)")
             
-        # --- TAB 3: PATCH NOTES ---
-        with tab_patch:
-            st.markdown("**Riwayat Pembaruan Sistem (Version Control)**")
+            if df_hero.empty:
+                st.warning("Data hero belum tersedia di database.")
+            else:
+                col_kpi1, col_kpi2, col_kpi3 = st.columns(3)
+                with col_kpi1:
+                    st.metric(label="Total Hero Dimainkan", value=f"{df_hero['Hero'].nunique()} Hero")
+                with col_kpi2:
+                    hero_mvp = df_hero.iloc[0]['Hero']
+                    st.metric(label="Hero dengan KDA Tertinggi", value=f"{hero_mvp}")
+                with col_kpi3:
+                    total_kills = df_hero['Total Kills'].sum()
+                    st.metric(label="Total Kills Keseluruhan", value=f"{total_kills} Kills")
+                
+                st.markdown("<br>", unsafe_allow_html=True)
+                
+                col_tabel, col_grafik = st.columns([1, 1.5], gap="large")
+                
+                with col_tabel:
+                    st.markdown("**Detail Rekapitulasi Hero**")
+                    st.dataframe(df_hero, use_container_width=True, hide_index=True)
+                    
+                with col_grafik:
+                    st.markdown("**Grafik Rata-rata KDA per Hero**")
+                    fig = px.bar(
+                        df_hero, 
+                        x="Hero", 
+                        y="Avg KDA Ratio", 
+                        color="Avg KDA Ratio", 
+                        text="Avg KDA Ratio",
+                        color_continuous_scale=px.colors.sequential.Reds 
+                    )
+                    fig.update_layout(
+                        plot_bgcolor="rgba(0,0,0,0)", 
+                        paper_bgcolor="rgba(0,0,0,0)",
+                        margin=dict(l=0, r=0, t=10, b=0), 
+                        font=dict(color="#ffffff")
+                    )
+                    fig.update_traces(textposition='outside')
+                    st.plotly_chart(fig, use_container_width=True)
             
-            # Menggunakan fitur expander (akordion) untuk log update
-            with st.expander("🔴 Versi 1.1.0 - The Analytics Update (Current)", expanded=True):
+        # --- HALAMAN 4: BERITA (ABOUT) ---
+        elif menu_selection == "BERITA (ABOUT)":
+            st.markdown("### 🌐 System Architecture & Patch Notes")
+            st.markdown(
+                "Selamat datang di pusat komando **Esports Analytics Pipeline**. Platform ini dibangun di atas "
+                "arsitektur data modern untuk menyimulasikan pemrosesan metrik e-sports secara terintegrasi."
+            )
+            
+            st.markdown("<br>", unsafe_allow_html=True)
+            
+            tab_arsitektur, tab_tech, tab_patch = st.tabs(["🏗️ Arsitektur Data", "🛠️ Tech Stack", "📜 Patch Notes"])
+            
+            with tab_arsitektur:
+                st.markdown("**Alur Pemrosesan Data (End-to-End Pipeline)**")
+                col_etl, col_dw, col_viz = st.columns(3)
+                
+                with col_etl:
+                    st.info("**1. Data Ingestion (ETL)**")
+                    st.write(
+                        "Skrip Python (`extract.py` & `transform.py`) otomatis mengekstrak data mentah, "
+                        "membersihkannya dengan **Pandas**, dan mengkalkulasi metrik turunan (seperti KDA) "
+                        "sebelum masuk ke database."
+                    )
+                    
+                with col_dw:
+                    st.warning("**2. Data Warehouse**")
+                    st.write(
+                        "Data bersih dimuat ke dalam **PostgreSQL** (`load.py`) mematuhi skema relasional 3NF. "
+                        "Memastikan integritas entitas menggunakan sistem Foreign Key dan UUID."
+                    )
+                    
+                with col_viz:
+                    st.error("**3. Visualization**")
+                    st.write(
+                        "Data di-query langsung dari database dan disajikan menjadi dasbor interaktif "
+                        "menggunakan **Streamlit** dan **Plotly**, memberikan insight performa secara langsung."
+                    )
+
+            with tab_tech:
+                st.markdown("**Infrastruktur Teknologi Terkini**")
                 st.markdown("""
-                - **[FEATURE]** Integrasi halaman 'Analisis Hero' dengan data tabel `game_entities`.
-                - **[UI/UX]** Perombakan total tampilan menjadi navigasi horizontal ala MPL ID (Merah/Marun).
-                - **[FIX]** Penyelesaian isu *scrollbar jitter* (layar bergetar) menggunakan CSS lock.
-                - **[FEATURE]** Penambahan antarmuka 'Profil Data Engineer' di halaman utama.
+                > **Bahasa Pemrograman:** Python 3.12+  
+                > **Pemrosesan Data & Analitik:** Pandas, NumPy  
+                > **Database & Konektor:** PostgreSQL, pgAdmin 4, SQLAlchemy, Psycopg2  
+                > **Pengembangan Antarmuka Web:** Streamlit, Streamlit-Option-Menu  
+                > **Visualisasi Grafis:** Plotly Express  
+                > **Version Control & Repository:** Git, GitHub  
                 """)
                 
-            with st.expander("⚪ Versi 1.0.0 - Pipeline Genesis"):
-                st.markdown("""
-                - **[CORE]** Pembuatan skema database relasional di PostgreSQL.
-                - **[CORE]** Pembuatan skrip generator data simulasi (Mock Data Turnamen M7).
-                - **[CORE]** Skrip ekstraksi dan transformasi berhasil terhubung menggunakan SQLAlchemy.
-                """)
+            with tab_patch:
+                st.markdown("**Riwayat Pembaruan Sistem (Version Control)**")
+                
+                with st.expander("🔴 Versi 1.1.0 - The Analytics Update (Current)", expanded=True):
+                    st.markdown("""
+                    - **[FEATURE]** Integrasi halaman 'Analisis Hero' dengan data tabel `game_entities`.
+                    - **[UI/UX]** Perombakan total tampilan menjadi navigasi horizontal ala MPL ID (Merah/Marun).
+                    - **[FIX]** Penyelesaian isu *scrollbar jitter* (layar bergetar) menggunakan CSS lock.
+                    - **[FEATURE]** Penambahan antarmuka 'Profil Data Engineer' di halaman utama.
+                    - **[FEATURE]** Penambahan Splash Screen (Cover Page) terintegrasi.
+                    """)
+                    
+                with st.expander("⚪ Versi 1.0.0 - Pipeline Genesis"):
+                    st.markdown("""
+                    - **[CORE]** Pembuatan skema database relasional di PostgreSQL.
+                    - **[CORE]** Pembuatan skrip generator data simulasi (Mock Data Turnamen M7).
+                    - **[CORE]** Skrip ekstraksi dan transformasi berhasil terhubung menggunakan SQLAlchemy.
+                    """)
