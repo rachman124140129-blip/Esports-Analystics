@@ -96,7 +96,7 @@ if not st.session_state['sudah_masuk']:
     </style>
     """, unsafe_allow_html=True)
 
-    col_cover_text, col_cover_img = st.columns([1.5, 1], gap="large")
+    col_cover_text, col_cover_img = st.columns([1.5, 1], gap="xxsmall")
     
     with col_cover_text:
         st.markdown('<p class="cover-subtitle">HAY! THERE</p>', unsafe_allow_html=True)
@@ -104,13 +104,23 @@ if not st.session_state['sudah_masuk']:
         st.markdown('<p class="cover-role">A STUDENT FROM ITERA |</p>', unsafe_allow_html=True)
         
         st.markdown("<br><br>", unsafe_allow_html=True)
-        
-        # Tombol Sakti untuk Melanjutkan
-        st.button("🚀 JELAJAHI PORTOFOLIO", on_click=masuk_portofolio, use_container_width=True)
+
+        st.markdown("""
+    <p style='color: #94a3b8; font-size: 20px; margin-top: 15px; margin-bottom: 30px; line-height: 1.6; font-weight: 400;'>
+    Selamat datang di portofolio data interaktif saya.<br>
+    Proyek ini merupakan simulasi end-to-end <b>E-Sports Analytics Pipeline</b>.<br>
+    Mengubah barisan data mentah menjadi wawasan strategis menggunakan kombinasi Python, PostgreSQL, dan Streamlit.
+    </p>
+    """, unsafe_allow_html=True)
         
     with col_cover_img:
         # Menggunakan logo esports untuk cover
-        st.image("dashboard/lalala.jpg", use_container_width=True)
+        st.image("dashboard/dataAnalisLogo.png", width=600)
+        st.markdown("<style>div.stButton > button { margin-top: -20px; }</style>", unsafe_allow_html=True)
+        
+        # Tombol Sakti untuk Melanjutkan
+        st.button("Masuk", on_click=masuk_portofolio, use_container_width=True)
+        
 
 # ==========================================
 # 3. HALAMAN UTAMA (SETELAH TOMBOL DIKLIK)
