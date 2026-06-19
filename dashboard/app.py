@@ -5,6 +5,21 @@ import plotly.express as px
 import sys
 import os
 from dotenv import load_dotenv
+from sqlalchemy import create_engine
+
+# --- KONEKSI KE DATABASE POSTGRESQL ---
+db_url = 'postgresql://postgres:0p9o8i7u6Y@localhost:5432/analisis_esport'
+engine = create_engine(db_url)
+
+# Fungsi cache agar dashboard tidak lemot saat di-refresh
+@st.cache_data
+def load_data():
+    query = "SELECT * FROM mlbb_match_stats"
+    df = pd.read_sql(query, engine)
+    return df
+
+# Memanggil datanya ke dalam variabel
+df_mlbb = load_data()
 
 # --- KONFIGURASI HALAMAN ---
 # Konfigurasi halaman WAJIB berada di paling atas sebelum logika layout lainnya
@@ -14,6 +29,29 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="collapsed" 
 )
+
+st.markdown("""
+    <style>
+        /* Impor Font */
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&display=swap');
+
+        /* Reset Dasar */
+        html, body, [class*="css"], [class*="st-"] {
+            font-family: 'Poppins', sans-serif !important;
+        }
+
+        /* Sembunyikan Header, Toolbar, dan Footer agar layout bersih */
+        header {visibility: hidden !important;}
+        [data-testid="stToolbar"] {visibility: hidden !important;}
+        footer {visibility: hidden !important;}
+
+        /* Atur Container Utama */
+        .block-container {
+            padding-top: 1rem !important;
+            padding-bottom: 2rem !important;
+        }
+    </style>
+""", unsafe_allow_html=True)
 
 # --- KONFIGURASI DATABASE ---
 load_dotenv()
@@ -140,7 +178,7 @@ else:
     col_logo, col_menu = st.columns([1.5, 4.5])
 
     with col_logo:
-        st.markdown("<h2 style='color: white; margin-top: 5px; font-style: italic;'>RH.<br><span style='color: #e50000;'>The Intruder</span></h2>", unsafe_allow_html=True)
+        st.markdown("<h2 style='color: white; margin-top: 5px; font-style: italic;'>RH.<br><span style='color: #e50000;'>Informatic Engineering</span></h2>", unsafe_allow_html=True)
 
     with col_menu:
         menu_selection = option_menu(
@@ -182,38 +220,122 @@ else:
                     "dengan tumpukan teknologi: Python, PostgreSQL, dan Streamlit."
                 )
                 
-        # --- HALAMAN 2: STATISTIK ---
-        elif menu_selection == "STATISTIK":
-            st.markdown("### 🏆 Papan Peringkat KDA: Team Liquid PH & ONIC")
-            col_kpi1, col_kpi2, col_kpi3 = st.columns(3)
-            with col_kpi1:
-                st.metric(label="Total Partisipan", value=f"{df_leaderboard['Player'].nunique()} Player")
-            with col_kpi2:
-                st.metric(label="KDA Tertinggi", value=f"{df_leaderboard['KDA Ratio'].max()} (MVP)")
-            with col_kpi3:
-                st.metric(label="Rata-rata Kills", value=f"{round(df_leaderboard['Kills'].mean(), 1)} / Match")
+                st.write("Minat belajar: ")
+                
+                st.markdown("**Pemrograman:**<br>Python, SQL, C++", unsafe_allow_html=True)
+                st.markdown("**Machine Learning:**<br>PostgreSQL, Pandas, ETL Pipeline", unsafe_allow_html=True)
+                st.markdown("**Visualisasi & Tools:**<br>Streamlit, Plotly, Git, VS Code", unsafe_allow_html=True)
+                
+                st.markdown("<br>", unsafe_allow_html=True)
+                
+                # Menambahkan Kotak Highlight untuk Objektif Karir
+                st.info("**Tujuan Karir:** Ingin terus berkembang di bidang *Data Engineering* dan *Machine Learning*, dengan fokus pada pemrosesan data, manajemen database, dan kecerdasan buatan.")
+                
+                # --- BAGIAN HUBUNGI SAYA (SOCIAL MEDIA ICONS) ---
+            st.markdown("---") 
+            st.markdown("#### Hubungi Saya")
             
+            st.markdown("""
+            <div style="display: flex; gap: 20px; margin-top: 10px; margin-bottom: 30px;">
+                <a href="https://github.com/rachman124140129-blip" target="_blank">
+                    <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/github/github-original.svg" width="35" height="35" title="GitHub" style="filter: brightness(0) invert(1); opacity: 0.8;">
+                </a>
+                <a href="https://instagram.com/username_ig_kamu" target="_blank">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/e/e7/Instagram_logo_2016.svg" width="35" height="35" title="Instagram" style="opacity: 0.8;">
+                </a>
+                <a href="https://linkedin.com/in/username_linkedin_kamu" target="_blank">
+                    <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/linkedin/linkedin-original.svg" width="35" height="35" title="LinkedIn" style="opacity: 0.8;">
+                </a>
+            </div>
+            """, unsafe_allow_html=True)
+                
+        # --- HALAMAN 2: STATISTIK ---
+# --- HALAMAN 2: STATISTIK ---
+        elif menu_selection == "STATISTIK":
+            st.title("📊 Statistik Pertandingan MLBB")
+            st.markdown("Berikut adalah data asli yang ditarik langsung dari **PostgreSQL Data Warehouse**:")
+            
+            # 1. Menampilkan Tabel (Bawaan sebelumnya)
+            st.dataframe(df_mlbb, use_container_width=True)
+            st.markdown("---")
+            
+            # 2. MEMBUAT KARTU METRIK (ANGKA PENTING)
+            total_pertandingan = df_mlbb['match_id'].nunique()
+            total_kill_global = df_mlbb['kills'].sum()
+            
+            # 1. Rekap total kills, deaths, dan assists untuk masing-masing pemain
+            df_kda = df_mlbb.groupby('player_name')[['kills', 'deaths', 'assists']].sum().reset_index()
+            
+            # 2. Hitung rasio KDA (menggunakan trik .replace(0, 1) agar tidak error dibagi nol)
+            df_kda['kda_score'] = (df_kda['kills'] + df_kda['assists']) / df_kda['deaths'].replace(0, 1)
+            
+            # 3. Cari baris pemain dengan skor KDA tertinggi
+            mvp_row = df_kda.loc[df_kda['kda_score'].idxmax()]
+            mvp_name = mvp_row['player_name']
+            
+            # Dibulatkan 2 angka di belakang koma (misal: 15.50)
+            mvp_kda = round(mvp_row['kda_score'], 2) 
+
+            # Menampilkan dalam 3 kolom metrik
+            col_m1, col_m2, col_m3 = st.columns(3)
+            col_m1.metric("Total Pertandingan", total_pertandingan)
+            col_m2.metric("Total Kills (Global)", total_kill_global)
+            
+            # Mengubah judul kartu menjadi Top KDA
+            col_m3.metric("🏆 MVP (Top KDA)", f"{mvp_name}", f"{mvp_kda} KDA")
+
+            st.markdown("<br>", unsafe_allow_html=True)
             st.markdown("<br>", unsafe_allow_html=True)
 
-            col_tabel, col_grafik = st.columns([1, 1.5])
-            with col_tabel:
-                st.dataframe(df_leaderboard, use_container_width=True, hide_index=True)
+            # ==========================================
+            # 3. MEMBUAT GRAFIK INTERAKTIF (PLOTLY)
+            # ==========================================
+            col_chart1, col_chart2 = st.columns(2)
+
+            with col_chart1:
+                # Grafik 1: Top 5 Player berdasarkan Total Kills (Bar Chart)
+                df_kills = df_mlbb.groupby('player_name')['kills'].sum().reset_index()
+                df_kills = df_kills.sort_values(by='kills', ascending=False).head(5) # Ambil Top 5
                 
-            with col_grafik:
-                fig = px.bar(
-                    df_leaderboard, x="Player", y="KDA Ratio", color="KDA Ratio", text="KDA Ratio",
-                    color_continuous_scale=px.colors.sequential.Reds 
+                fig_bar = px.bar(
+                    df_kills, 
+                    x='player_name', 
+                    y='kills', 
+                    title='Top 5 Pemain dengan Kill Terbanyak',
+                    labels={'player_name': 'Nama Pemain', 'kills': 'Total Kill'},
+                    color='kills',
+                    color_continuous_scale='Blues' # Tema warna biru e-sports
                 )
-                fig.update_layout(
-                    plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)",
-                    margin=dict(l=0, r=0, t=10, b=0), font=dict(color="#ffffff")
+                st.plotly_chart(fig_bar, use_container_width=True)
+
+            with col_chart2:
+                # Grafik 2: Hero Paling Banyak Dipick (Donut Chart)
+                df_hero = df_mlbb['hero_name'].value_counts().reset_index()
+                df_hero.columns = ['hero_name', 'jumlah_pick']
+                
+                fig_pie = px.pie(
+                    df_hero, 
+                    names='hero_name', 
+                    values='jumlah_pick', 
+                    title='Distribusi Hero Paling Laris',
+                    hole=0.4, # Membuatnya menjadi Donut Chart (bukan pie biasa)
+                    color_discrete_sequence=px.colors.sequential.RdBu # Tema warna merah-biru
                 )
-                fig.update_traces(textposition='outside')
-                st.plotly_chart(fig, use_container_width=True)
+                fig_pie.update_traces(textposition='inside', textinfo='percent+label')
+                st.plotly_chart(fig_pie, use_container_width=True)
 
         # --- HALAMAN 3: ANALISIS HERO ---
         elif menu_selection == "ANALISIS HERO":
             st.markdown("### ⚔️ Statistik Performa Hero (Champion)")
+            
+            csv_data_full = df_mlbb.to_csv(index=False).encode('utf-8')
+
+            st.download_button(
+                label="📥 Download Data CSV",
+                data=csv_data_full,
+                file_name='full_mlbb_stats.csv',
+                mime='text/csv'
+            )
             
             if df_hero.empty:
                 st.warning("Data hero belum tersedia di database.")
