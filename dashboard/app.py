@@ -4,6 +4,7 @@ import pandas as pd
 import plotly.express as px
 import sys
 import os
+import base64
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
 
@@ -21,6 +22,14 @@ def load_data():
 # Memanggil datanya ke dalam variabel
 df_mlbb = load_data()
 
+def get_base64_of_bin_file(bin_file):
+    with open(bin_file, 'rb') as f:
+        data = f.read()
+    return base64.b64encode(data).decode()
+
+img_base64 = get_base64_of_bin_file('dashboard/mbgcantikbgt.jpg')
+img_bg_dalam = get_base64_of_bin_file('dashboard/mbguhah.jpg')
+
 # --- KONFIGURASI HALAMAN ---
 # Konfigurasi halaman WAJIB berada di paling atas sebelum logika layout lainnya
 st.set_page_config(
@@ -31,27 +40,26 @@ st.set_page_config(
 )
 
 st.markdown("""
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&display=swap" rel="stylesheet">
+        
     <style>
-        /* Impor Font */
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&display=swap');
-
-        /* Reset Dasar */
-        html, body, [class*="css"], [class*="st-"] {
-            font-family: 'Poppins', sans-serif !important;
+        /* 1. Menerapkan font HANYA pada teks, BUKAN pada ikon */
+        html, body, p, h1, h2, h3, h4, h5, h6, li, a, span {
+        font-family: 'Poppins', sans-serif !important;
         }
-
-        /* Sembunyikan Header, Toolbar, dan Footer agar layout bersih */
-        header {visibility: hidden !important;}
+        
+        /* 2. Menyembunyikan menu 3 titik dan tulisan bawah Streamlit dengan rapi */
         [data-testid="stToolbar"] {visibility: hidden !important;}
         footer {visibility: hidden !important;}
-
-        /* Atur Container Utama */
+        header {visibility: hidden !important;}
+        
+        /* 3. Merapikan margin atas agar tidak terlalu banyak ruang kosong */
         .block-container {
-            padding-top: 1rem !important;
-            padding-bottom: 2rem !important;
+        padding-top: 2rem !important;
+        padding-bottom: 2rem !important;
         }
     </style>
-""", unsafe_allow_html=True)
+    """, unsafe_allow_html=True)
 
 # --- KONFIGURASI DATABASE ---
 load_dotenv()
@@ -121,19 +129,29 @@ def masuk_portofolio():
 if not st.session_state['sudah_masuk']:
     
     # CSS Khusus untuk Cover
-    st.markdown("""
-    <style>
-    header {visibility: hidden;}
-    .block-container {padding-top: 2rem;}
-    .cover-subtitle { font-size: 22px; letter-spacing: 3px; color: #888; margin-bottom: -15px; }
-    .cover-title { font-size: 65px; font-weight: 900; margin-bottom: -15px; line-height: 1.1; }
-    .cover-role { font-size: 22px; font-weight: 300; color: #555; margin-bottom: 20px; }
-    /* Desain Tombol Ala MPL */
-    .stButton>button { border-radius: 5px; border: 2px solid #e50000; color: white; background-color: transparent; height: 50px; font-weight: bold; letter-spacing: 1px;}
-    .stButton>button:hover { background-color: #e50000; color: white; border-color: #e50000;}
-    </style>
-    """, unsafe_allow_html=True)
+    st.markdown(f"""
+        <style>
+            /* Menyembunyikan header bawaan */
+            header {{visibility: hidden;}}
+            .block-container {{padding-top: 2rem;}}
+    
+        .stApp {{
+            background-image: linear-gradient(rgba(11, 15, 25, 0.85), rgba(11, 15, 25, 0.85)), url("data:image/jpg;base64,{img_base64}");
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }}
 
+        .cover-subtitle {{ font-size: 22px; letter-spacing: 3px; color: #888; margin-bottom: -15px; }}
+        .cover-title {{ font-size: 65px; font-weight: 900; margin-bottom: -15px; line-height: 1.1; }}
+        .cover-role {{ font-size: 22px; font-weight: 300; color: #555; margin-bottom: 20px; }}
+        
+        /* Desain Tombol Ala MPL */
+        .stButton>button {{ border-radius: 5px; border: 2px solid #e50000; color: white; background-color: transparent; height: 50px; font-weight: bold; letter-spacing: 1px;}}
+        .stButton>button:hover {{ background-color: #e50000; color: white; border-color: #e50000;}}
+        </style>
+        """, unsafe_allow_html=True)
+    
     col_cover_text, col_cover_img = st.columns([1.5, 1], gap="xxsmall")
     
     with col_cover_text:
@@ -200,6 +218,17 @@ else:
     else:
         # --- HALAMAN 1: PROFIL (HOME) ---
         if menu_selection == "HOME (PROFIL)":
+            st.markdown(f"""
+                <style>
+                .stApp {{
+                    background-image: linear-gradient(rgba(11, 15, 25, 0.85), rgba(11, 15, 25, 0.85)), url("data:image/jpg;base64,{img_bg_dalam}");
+                    background-size: cover;
+                    background-position: center;
+                    background-attachment: fixed;
+                }}
+                </style>
+            """, unsafe_allow_html=True)
+            
             col_foto, col_teks = st.columns([1, 2.5], gap="large")
             with col_foto:
                 # Menggunakan foto dirimu untuk di dalam profil
@@ -248,10 +277,20 @@ else:
                 </a>
             </div>
             """, unsafe_allow_html=True)
-                
+
         # --- HALAMAN 2: STATISTIK ---
-# --- HALAMAN 2: STATISTIK ---
         elif menu_selection == "STATISTIK":
+            st.markdown(f"""
+                <style>
+                .stApp {{
+                    background-image: linear-gradient(rgba(11, 15, 25, 0.85), rgba(11, 15, 25, 0.85)), url("data:image/jpg;base64,{img_bg_dalam}");
+                    background-size: cover;
+                    background-position: center;
+                    background-attachment: fixed;
+                }}
+                </style>
+            """, unsafe_allow_html=True)
+            
             st.title("📊 Statistik Pertandingan MLBB")
             st.markdown("Berikut adalah data asli yang ditarik langsung dari **PostgreSQL Data Warehouse**:")
             
@@ -260,31 +299,40 @@ else:
             st.markdown("---")
             
             # 2. MEMBUAT KARTU METRIK (ANGKA PENTING)
+            st.subheader("🔥 Highlight Performa")
+        
+            # Menghitung angka dasar dari dataframe (keseluruhan data)
             total_pertandingan = df_mlbb['match_id'].nunique()
             total_kill_global = df_mlbb['kills'].sum()
             
-            # 1. Rekap total kills, deaths, dan assists untuk masing-masing pemain
-            df_kda = df_mlbb.groupby('player_name')[['kills', 'deaths', 'assists']].sum().reset_index()
+            # --- LOGIKA BARU: MENGHITUNG MVP HANYA DARI TIM YANG MENANG ---
+            # 1. Menyaring data, ambil yang kolom match_result-nya 'Win'
+            df_menang = df_mlbb[df_mlbb['match_result'].str.lower() == 'win']
             
-            # 2. Hitung rasio KDA (menggunakan trik .replace(0, 1) agar tidak error dibagi nol)
+            # 2. Rekap total kills, deaths, dan assists HANYA untuk pemain di data kemenangan
+            df_kda = df_menang.groupby('player_name')[['kills', 'deaths', 'assists']].sum().reset_index()
+            
+            # 3. Hitung rasio KDA (menggunakan trik .replace(0, 1) agar tidak error dibagi nol)
             df_kda['kda_score'] = (df_kda['kills'] + df_kda['assists']) / df_kda['deaths'].replace(0, 1)
             
-            # 3. Cari baris pemain dengan skor KDA tertinggi
-            mvp_row = df_kda.loc[df_kda['kda_score'].idxmax()]
-            mvp_name = mvp_row['player_name']
-            
-            # Dibulatkan 2 angka di belakang koma (misal: 15.50)
-            mvp_kda = round(mvp_row['kda_score'], 2) 
+            # 4. Cari baris pemain dengan skor KDA tertinggi
+            # Menggunakan pengecekan aman (jika datanya tidak kosong)
+            if not df_kda.empty:
+                mvp_row = df_kda.loc[df_kda['kda_score'].idxmax()]
+                mvp_name = mvp_row['player_name']
+                mvp_kda = round(mvp_row['kda_score'], 2) 
+            else:
+                mvp_name = "Belum Ada Data"
+                mvp_kda = 0
 
             # Menampilkan dalam 3 kolom metrik
             col_m1, col_m2, col_m3 = st.columns(3)
             col_m1.metric("Total Pertandingan", total_pertandingan)
             col_m2.metric("Total Kills (Global)", total_kill_global)
             
-            # Mengubah judul kartu menjadi Top KDA
-            col_m3.metric("🏆 MVP (Top KDA)", f"{mvp_name}", f"{mvp_kda} KDA")
+            # Mengubah judul kartu menjadi lebih spesifik
+            col_m3.metric("🏆 MVP (Tim Menang)", f"{mvp_name}", f"{mvp_kda} KDA")
 
-            st.markdown("<br>", unsafe_allow_html=True)
             st.markdown("<br>", unsafe_allow_html=True)
 
             # ==========================================
@@ -326,59 +374,88 @@ else:
 
         # --- HALAMAN 3: ANALISIS HERO ---
         elif menu_selection == "ANALISIS HERO":
-            st.markdown("### ⚔️ Statistik Performa Hero (Champion)")
+            st.markdown(f"""
+                <style>
+                .stApp {{
+                    background-image: linear-gradient(rgba(11, 15, 25, 0.85), rgba(11, 15, 25, 0.85)), url("data:image/jpg;base64,{img_bg_dalam}");
+                    background-size: cover;
+                    background-position: center;
+                    background-attachment: fixed;
+                }}
+                </style>
+            """, unsafe_allow_html=True)
             
-            csv_data_full = df_mlbb.to_csv(index=False).encode('utf-8')
+            st.title("🦸 Analisis Performa Hero")
+            st.markdown("Analisis mendalam karakteristik dan efektivitas *Hero* berdasarkan data PostgreSQL.")
 
-            st.download_button(
-                label="📥 Download Data CSV",
-                data=csv_data_full,
-                file_name='full_mlbb_stats.csv',
-                mime='text/csv'
+            # 1. MEMBUAT FILTER DROPDOWN HERO
+            # Mengambil daftar unik nama hero dari database dan diurutkan secara alfabetis
+            list_hero = sorted(df_mlbb['hero_name'].unique())
+            
+            # Membuat box pilihan di Streamlit
+            selected_hero = st.selectbox("🎯 Pilih Hero yang Ingin Dianalisis:", list_hero)
+
+            # Menyaring data (filtering) hanya untuk hero yang dipilih
+            df_filtered_hero = df_mlbb[df_mlbb['hero_name'] == selected_hero]
+
+            st.markdown("---")
+            st.subheader(f"📊 Rekam Jejak Hero: {selected_hero}")
+
+            # 2. MENGHITUNG METRIK SPESIFIK HERO
+            # Menghitung total match hero tersebut di pick
+            total_pick = len(df_filtered_hero)
+            
+            # Menghitung Win Rate (%)
+            total_win = len(df_filtered_hero[df_filtered_hero['match_result'].str.lower() == 'win'])
+            win_rate = round((total_win / total_pick) * 100, 2) if total_pick > 0 else 0
+
+            # Menghitung Rata-rata KDA Hero tersebut
+            avg_kills = round(df_filtered_hero['kills'].mean(), 1)
+            avg_deaths = round(df_filtered_hero['deaths'].mean(), 1)
+            avg_assists = round(df_filtered_hero['assists'].mean(), 1)
+
+            # Menampilkan kartu metrik khusus hero
+            col_h1, col_h2, col_h3 = st.columns(3)
+            col_h1.metric("Total Di-Pick", f"{total_pick} Kali")
+            col_h2.metric("📈 Win Rate Hero", f"{win_rate} %")
+            col_h3.metric("⚔️ Rata-rata KDA", f"{avg_kills} / {avg_deaths} / {avg_assists}")
+
+            st.markdown("<br>", unsafe_allow_html=True)
+
+            # 3. GRAFIK PERFORMA PLAYER MENGGUNAKAN HERO TERSEBUT
+            # Grafik diagram batang: Siapa saja yang memakai hero ini dan berapa kill mereka?
+            df_player_hero = df_filtered_hero.groupby('player_name')['kills'].sum().reset_index()
+            df_player_hero = df_player_hero.sort_values(by='kills', ascending=False)
+
+            fig_hero_bar = px.bar(
+                df_player_hero,
+                x='player_name',
+                y='kills',
+                title=f'Kontribusi Kill Pemain Menggunakan {selected_hero}',
+                labels={'player_name': 'Nama Pemain', 'kills': 'Total Kill'},
+                color='kills',
+                color_continuous_scale='Purples' # Tema warna ungu mistis untuk hero
             )
             
-            if df_hero.empty:
-                st.warning("Data hero belum tersedia di database.")
-            else:
-                col_kpi1, col_kpi2, col_kpi3 = st.columns(3)
-                with col_kpi1:
-                    st.metric(label="Total Hero Dimainkan", value=f"{df_hero['Hero'].nunique()} Hero")
-                with col_kpi2:
-                    hero_mvp = df_hero.iloc[0]['Hero']
-                    st.metric(label="Hero dengan KDA Tertinggi", value=f"{hero_mvp}")
-                with col_kpi3:
-                    total_kills = df_hero['Total Kills'].sum()
-                    st.metric(label="Total Kills Keseluruhan", value=f"{total_kills} Kills")
-                
-                st.markdown("<br>", unsafe_allow_html=True)
-                
-                col_tabel, col_grafik = st.columns([1, 1.5], gap="large")
-                
-                with col_tabel:
-                    st.markdown("**Detail Rekapitulasi Hero**")
-                    st.dataframe(df_hero, use_container_width=True, hide_index=True)
-                    
-                with col_grafik:
-                    st.markdown("**Grafik Rata-rata KDA per Hero**")
-                    fig = px.bar(
-                        df_hero, 
-                        x="Hero", 
-                        y="Avg KDA Ratio", 
-                        color="Avg KDA Ratio", 
-                        text="Avg KDA Ratio",
-                        color_continuous_scale=px.colors.sequential.Reds 
-                    )
-                    fig.update_layout(
-                        plot_bgcolor="rgba(0,0,0,0)", 
-                        paper_bgcolor="rgba(0,0,0,0)",
-                        margin=dict(l=0, r=0, t=10, b=0), 
-                        font=dict(color="#ffffff")
-                    )
-                    fig.update_traces(textposition='outside')
-                    st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig_hero_bar, use_container_width=True)
+            
+            # Menampilkan cuplikan tabel pertandingan khusus hero tersebut
+            st.markdown(f"📋 **Detail Riwayat Pertandingan Selama Menggunakan {selected_hero}:**")
+            st.dataframe(df_filtered_hero[['match_id', 'match_date', 'player_name', 'team_name', 'kills', 'deaths', 'assists', 'match_result']], use_container_width=True)
             
         # --- HALAMAN 4: BERITA (ABOUT) ---
         elif menu_selection == "BERITA (ABOUT)":
+            st.markdown(f"""
+                <style>
+                .stApp {{
+                    background-image: linear-gradient(rgba(11, 15, 25, 0.85), rgba(11, 15, 25, 0.85)), url("data:image/jpg;base64,{img_bg_dalam}");
+                    background-size: cover;
+                    background-position: center;
+                    background-attachment: fixed;
+                }}
+                </style>
+            """, unsafe_allow_html=True)
+            
             st.markdown("### 🌐 System Architecture & Patch Notes")
             st.markdown(
                 "Selamat datang di pusat komando **Esports Analytics Pipeline**. Platform ini dibangun di atas "
